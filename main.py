@@ -1,4 +1,6 @@
 import time
+import threading
+
 
 # PyAGC
 # Victor Mout, 2021
@@ -12,16 +14,11 @@ import time
 # bCH
 # AUG
 
-# TODO: Add line by line file reader
-# TODO: Finish all instructions
-# TODO: Add function logic
-# TODO: Add I/O logic
-# TODO: Add DSKY output
-# TODO: Finish registers
-# TODO: Add nessecary ROM data
 
+# TODO: Add TIME4/5/6 counter offset once fetch cycle is implemented
 
-
+currentOpcode = "26000"
+currentArgument = "233"
 # Define Memory and ROM
 class Memory:
     UNSWITCHED_WRITABLE_Memory = [0] * 767
@@ -43,12 +40,10 @@ class Memory:
     IO_SPACE = [0] * 511
 
 
-
-
-
 # AGC object
 class AGC(object):
     globals()
+
     def __init__(self):
         self.A = 0b00
         self.L = 0b00
@@ -94,11 +89,137 @@ class AGC(object):
         self.OPTXCMD = 0b00
         self.OUTLINK = 0b00
 
-
         # Interrupt flags
-        INTERRUPTFL = False
+        self.INTERRUPTFL = False
+        self.T3RUPT = False
+        self.T4RUPT = False
 
-    #cycle length =  0.00000000048828125
+        # Arbitrary logic flags
+        self.t4logicflag = True
+
+        # EXTRACODE flag
+        self.EXTRACODE = False
+    # cycle length =  0.00000000048828125
+
+        self.opcodes = {
+            "AD" : "60000",
+
+            "ADS" : "26000",
+
+            "AUG": "24000",
+
+            "BZF": "10000",
+
+            "BZF": "10000",
+
+            "BZMF": "60000",
+
+            "CA": "30000",
+
+            "CAE": "30000",
+
+            "CAF": "30000",
+
+            "CCS": "10000",
+
+            "COM": "40000",
+
+            "CS": "40000",
+
+            "DAS": "20001",
+
+            "DCA": "30001",
+
+            "DCOM": "40001",
+
+            "DCS": "40001",
+
+            "DDOUBL": "20001",
+
+            "DIM": "26000",
+
+            "DOUBLE": "60000",
+
+            "DTCB": "52006",
+
+            "DTCF": "52005",
+
+            "DV": "10000",
+
+            "DXCH": "52001",
+
+            "EDRUPT": "07000",
+
+            "EXTEND": "00006",
+
+            "INCR": "24000",
+
+            "INDEX": "50000",
+
+            "INHINT": "00004",
+
+            "LXCH": "22000",
+
+            "MASK": "70000",
+
+            "MP": "70000",
+
+            "MSU": "20000",
+
+            "NOOP": "30000",
+
+            "NOOP": "10000",
+
+            "OVSK": "54000",
+
+            "QXCH": "22000",
+
+            "RAND": "02000",
+
+            "READ": "00000",
+
+            "RELINT": "00003",
+
+            "RESUME": "50017",
+
+            "RETURN": "00002",
+
+            "ROR": "04000",
+
+            "RXOR": "06000",
+
+            "SQUARE": "70000",
+
+            "SU": "60000",
+
+            "TC": "00000",
+
+            "TCAA": "54002",
+
+            "TCF": "10000",
+
+            "TS": "54000",
+
+            "WAND": "03000",
+
+            "WOR": "05000",
+
+            "WRITE": "01000",
+
+            "XCH": "56000",
+
+            "XLQ": "00001",
+
+            "XXALQ": "00000",
+
+            "ZL": "22007",
+
+            "ZQ": "22007"
+
+        }
+
+
+
 
     def registerHandler(self):
         Memory.ACTIVEBANK = ("Memory.EB" + str(AGC.EB))
@@ -124,26 +245,31 @@ class AGC(object):
 
 
 
+    def fetch(self):
+        if (currentOpcode == self.opcodes["AD"] and self.EXTRACODE == False):
+                self.A = self.A + Memory.Memory[int(currentArgument)]
 
-    def timerLoop(self):
+        if (currentOpcode == self.opcodes["ADS"] and self.EXTRACODE == False):
+                Memory.Memory[int(currentArgument)] = Memory.Memory[int(currentArgument)] + self.A
 
-            time.sleep(0.010)
-            self.TIME1 = self.TIME1 + 1
-            if self.TIME1 == 0b11111111111111:
-                self.TIME1 = 0b000000000000000
-                self.TIME2 = self.TIME2 + 1
+
+
 
     def interruptHandler(self):
         pass
-    def processInstruction(self, instruction: str):
-        splitInstruction = instruction.split()
+
 
 AGC = AGC()
 
+
 # Main function
 def main():
-    while True:
-        AGC.timerLoop()
+    AGC.A = 123
+    AGC.fetch()
+    print(Memory.Memory[223])
+
+
 # name/main run check
 if __name__ == '__main__':
     main()
+
